@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""List all Firefox tabs with title and URL
+
+    Supported input: json or jsonlz4 recovery files
+    Default output: window title URL
+    Previously saved dump file can be specified as argument
+
+    Inspired by: https://gist.github.com/tmonjalo/33c4402b0d35f1233020bf427b5539fa
+
+"""
+
+import lz4.block
+import json
+import sys
+
+DEFAULT = "/home/darren/.mozilla/firefox/u6g0fs57.default/sessionstore-backups/recovery.jsonlz4"
+
+template = '%s\t%s\t%s'
+
+if __name__ == '__main__':
+
+
+    if len(sys.argv) == 2:
+       infile = sys.argv[1]
+    else:
+       infile = DEFAULT
+
+    window_number = 0
+    file_obj = open(infile, "rb")
+    b = file_obj.read()
+    if b[:8] == b'mozLz40\0':
+        b = lz4.block.decompress(b[8:])
+    j = json.loads(b.decode('utf-8'))
+    for w in j['windows']:
+        window_number = window_number + 1
+        print
+        print("*" * 80)
+        for t in w['tabs']:
+            i = t['index'] - 1
+            print(template % ( window_number, t['entries'][i]['title'], t['entries'][i]['url'] ))
